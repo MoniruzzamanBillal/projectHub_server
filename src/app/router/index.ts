@@ -1,6 +1,6 @@
 import { Router } from "express";
 
-// import { activityLogRouter } from "../modules/activityLog/activityLog.route";
+import { activityLogRouter } from "../modules/activityLog/activityLog.route";
 import { authRouter } from "../modules/auth/auth.router";
 import { commentRouter } from "../modules/comment/comment.route";
 import { dashboardRouter } from "../modules/dashboard/dashboard.route";
@@ -36,10 +36,10 @@ const routeArray = [
     route: commentRouter,
   },
 
-  // {
-  //   path: "/activity-logs",
-  //   route: activityLogRouter,
-  // },
+  {
+    path: "/activity-logs",
+    route: activityLogRouter,
+  },
 
   {
     path: "/dashboard",
