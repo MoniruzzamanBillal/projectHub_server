@@ -15,7 +15,7 @@ const createProject = catchAsync(async (req, res) => {
 });
 
 const getAllProjects = catchAsync(async (req, res) => {
-  const result = await projectServices.getAllProjects();
+  const result = await projectServices.getAllProjects(req.query);
 
   sendResponse(res, {
     status: httpStatus.OK,
@@ -41,6 +41,7 @@ const updateProject = catchAsync(async (req, res) => {
     req.params.id,
     req.body,
     req.user.userId,
+    req.user.userRole,
   );
 
   sendResponse(res, {
@@ -52,7 +53,10 @@ const updateProject = catchAsync(async (req, res) => {
 });
 
 const deleteProject = catchAsync(async (req, res) => {
-  const result = await projectServices.deleteProject(req.params.id);
+  const result = await projectServices.deleteProject(
+    req.params.id,
+    req.user.userId,
+  );
 
   sendResponse(res, {
     status: httpStatus.OK,
@@ -66,6 +70,7 @@ const addMember = catchAsync(async (req, res) => {
   const result = await projectServices.addMember(
     req.params.id,
     req.body.userId,
+    req.user.userId,
   );
 
   sendResponse(res, {
@@ -80,6 +85,7 @@ const removeMember = catchAsync(async (req, res) => {
   const result = await projectServices.removeMember(
     req.params.id,
     req.params.memberId,
+    req.user.userId,
   );
 
   sendResponse(res, {

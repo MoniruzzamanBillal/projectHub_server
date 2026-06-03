@@ -14,6 +14,17 @@ const getAllUsers = catchAsync(async (req, res) => {
   });
 });
 
+const getAllUsersForTeam = catchAsync(async (req, res) => {
+  const result = await userServices.getAllUsersForTeam();
+
+  sendResponse(res, {
+    status: httpStatus.OK,
+    success: true,
+    message: "Team members retrieved successfully",
+    data: result,
+  });
+});
+
 // ! get logged in user
 const getLoggedInUser = catchAsync(async (req, res) => {
   const result = await userServices.getLoggedInUser(req.user?.userId);
@@ -26,7 +37,28 @@ const getLoggedInUser = catchAsync(async (req, res) => {
   });
 });
 
-// ! for updating a user
+const updateUserRole = catchAsync(async (req, res) => {
+  const { userId } = req.params;
+  const { role } = req.body;
+
+  const result = await userServices.updateUserRole(
+    userId,
+    role,
+    req.user.userId,
+  );
+
+  sendResponse(res, {
+    status: httpStatus.OK,
+    success: true,
+    message: "User role updated successfully",
+    data: result,
+  });
+});
 
 //
-export const userController = { getAllUsers, getLoggedInUser };
+export const userController = {
+  getAllUsers,
+  getAllUsersForTeam,
+  getLoggedInUser,
+  updateUserRole,
+};

@@ -15,12 +15,35 @@ const createTask = catchAsync(async (req, res) => {
 });
 
 const getAllTasks = catchAsync(async (req, res) => {
-  const result = await taskServices.getAllTasks();
+  const { searchTerm, status, priority } = req.query;
+
+  const result = await taskServices.getAllTasks({
+    searchTerm: searchTerm as string | undefined,
+    status: status as string | undefined,
+    priority: priority as string | undefined,
+  });
 
   sendResponse(res, {
     status: httpStatus.OK,
     success: true,
     message: "Tasks retrieved successfully",
+    data: result,
+  });
+});
+
+const getMyTasks = catchAsync(async (req, res) => {
+  const { searchTerm, status, priority } = req.query;
+
+  const result = await taskServices.getMyTasks(req.user.userId, {
+    searchTerm: searchTerm as string | undefined,
+    status: status as string | undefined,
+    priority: priority as string | undefined,
+  });
+
+  sendResponse(res, {
+    status: httpStatus.OK,
+    success: true,
+    message: "My tasks retrieved successfully",
     data: result,
   });
 });
@@ -64,7 +87,7 @@ const updateTask = catchAsync(async (req, res) => {
 });
 
 const deleteTask = catchAsync(async (req, res) => {
-  const result = await taskServices.deleteTask(req.params.id);
+  const result = await taskServices.deleteTask(req.params.id, req.user.userId);
 
   sendResponse(res, {
     status: httpStatus.OK,
@@ -77,6 +100,7 @@ const deleteTask = catchAsync(async (req, res) => {
 export const taskController = {
   createTask,
   getAllTasks,
+  getMyTasks,
   getTasksByProject,
   getSingleTask,
   updateTask,

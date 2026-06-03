@@ -1,5 +1,5 @@
-import { Router } from "express";
 import { Role } from "@prisma/client";
+import { Router } from "express";
 import validateRequest from "../../middleware/validateRequest";
 import validateUser from "../../middleware/validateUser";
 import { taskController } from "./task.controller";
@@ -24,6 +24,12 @@ router.get(
   "/project/:projectId",
   validateUser(Role.ADMIN, Role.PROJECT_MANAGER, Role.TEAM_MEMBER),
   taskController.getTasksByProject,
+);
+
+router.get(
+  "/my",
+  validateUser(Role.ADMIN, Role.PROJECT_MANAGER, Role.TEAM_MEMBER),
+  taskController.getMyTasks,
 );
 
 router.get(

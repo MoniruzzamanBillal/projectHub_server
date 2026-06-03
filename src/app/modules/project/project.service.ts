@@ -1,3 +1,4 @@
+import { Role } from "@prisma/client";
 import httpStatus from "http-status";
 import AppError from "../../Error/AppError";
 import prisma from "../../util/prisma";
@@ -18,11 +19,47 @@ const createProject = async (payload: TCreateProject, ownerId: string) => {
     },
   });
 
+  await prisma.activityLog.create({
+    data: {
+      action: "PROJECT_CREATED",
+      description: `Project "${payload.name}" was created`,
+      userId: ownerId,
+      projectId: result.id,
+    },
+  });
+
   return result;
 };
 
-const getAllProjects = async () => {
+const getAllProjects = async (query: Record<string, unknown>) => {
+  const { searchTerm, status } = query;
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const andConditions: any[] = [];
+
+  if (searchTerm) {
+    andConditions.push({
+      OR: [
+        { name: { contains: searchTerm as string, mode: "insensitive" } },
+        {
+          description: { contains: searchTerm as string, mode: "insensitive" },
+        },
+      ],
+    });
+  }
+
+  if (status && status !== "all") {
+    andConditions.push({
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      status: status as any,
+    });
+  }
+
+  const whereConditions =
+    andConditions.length > 0 ? { AND: andConditions } : {};
+
   const result = await prisma.project.findMany({
+    where: whereConditions,
     include: {
       owner: {
         select: { id: true, name: true, email: true },
@@ -76,6 +113,7 @@ const updateProject = async (
   projectId: string,
   payload: TUpdateProject,
   userId: string,
+  userRole: string,
 ) => {
   const project = await prisma.project.findUnique({
     where: { id: projectId },
@@ -85,9 +123,9 @@ const updateProject = async (
     throw new AppError(httpStatus.NOT_FOUND, "Project not found");
   }
 
-  if (project?.ownerId !== userId) {
+  if (userRole !== Role.ADMIN && project.ownerId !== userId) {
     throw new AppError(
-      httpStatus.BAD_REQUEST,
+      httpStatus.FORBIDDEN,
       "This user is not owner of this Project",
     );
   }
@@ -105,10 +143,19 @@ const updateProject = async (
     },
   });
 
+  await prisma.activityLog.create({
+    data: {
+      action: "PROJECT_UPDATED",
+      description: `Project "${project.name}" was updated`,
+      userId,
+      projectId,
+    },
+  });
+
   return result;
 };
 
-const deleteProject = async (projectId: string) => {
+const deleteProject = async (projectId: string, userId: string) => {
   const project = await prisma.project.findUnique({
     where: { id: projectId },
   });
@@ -117,6 +164,15 @@ const deleteProject = async (projectId: string) => {
     throw new AppError(httpStatus.NOT_FOUND, "Project not found");
   }
 
+  await prisma.activityLog.create({
+    data: {
+      action: "PROJECT_DELETED",
+      description: `Project "${project.name}" was deleted`,
+      userId,
+      projectId,
+    },
+  });
+
   await prisma.project.delete({
     where: { id: projectId },
   });
@@ -124,7 +180,11 @@ const deleteProject = async (projectId: string) => {
   return { message: "Project deleted successfully" };
 };
 
-const addMember = async (projectId: string, userId: string) => {
+const addMember = async (
+  projectId: string,
+  userId: string,
+  actingUserId: string,
+) => {
   const project = await prisma.project.findUnique({
     where: { id: projectId },
   });
@@ -158,10 +218,23 @@ const addMember = async (projectId: string, userId: string) => {
     },
   });
 
+  await prisma.activityLog.create({
+    data: {
+      action: "MEMBER_ADDED",
+      description: `Member "${user.name}" was added to project "${project.name}"`,
+      userId: actingUserId,
+      projectId,
+    },
+  });
+
   return result;
 };
 
-const removeMember = async (projectId: string, userId: string) => {
+const removeMember = async (
+  projectId: string,
+  userId: string,
+  actingUserId: string,
+) => {
   const membership = await prisma.projectMember.findUnique({
     where: { projectId_userId: { projectId, userId } },
   });
@@ -169,6 +242,20 @@ const removeMember = async (projectId: string, userId: string) => {
   if (!membership) {
     throw new AppError(httpStatus.NOT_FOUND, "Membership not found");
   }
+
+  const user = await prisma.user.findUnique({ where: { id: userId } });
+  const project = await prisma.project.findUnique({
+    where: { id: projectId },
+  });
+
+  await prisma.activityLog.create({
+    data: {
+      action: "MEMBER_REMOVED",
+      description: `Member "${user?.name ?? userId}" was removed from project "${project?.name ?? projectId}"`,
+      userId: actingUserId,
+      projectId,
+    },
+  });
 
   await prisma.projectMember.delete({
     where: { projectId_userId: { projectId, userId } },

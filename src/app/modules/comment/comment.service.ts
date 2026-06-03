@@ -26,6 +26,16 @@ const createComment = async (payload: TCreateComment, authorId: string) => {
     },
   });
 
+  await prisma.activityLog.create({
+    data: {
+      action: "COMMENT_ADDED",
+      description: `Comment added to task "${task.title}"`,
+      userId: authorId,
+      projectId: task.projectId,
+      taskId: payload.taskId,
+    },
+  });
+
   return result;
 };
 
