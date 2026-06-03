@@ -1,7 +1,9 @@
 import { Router } from "express";
 
+// import { activityLogRouter } from "../modules/activityLog/activityLog.route";
 import { authRouter } from "../modules/auth/auth.router";
 import { commentRouter } from "../modules/comment/comment.route";
+import { dashboardRouter } from "../modules/dashboard/dashboard.route";
 import { projectRouter } from "../modules/project/project.route";
 import { taskRouter } from "../modules/task/task.route";
 import { userRouter } from "../modules/user/user.route";
@@ -32,6 +34,16 @@ const routeArray = [
   {
     path: "/comments",
     route: commentRouter,
+  },
+
+  // {
+  //   path: "/activity-logs",
+  //   route: activityLogRouter,
+  // },
+
+  {
+    path: "/dashboard",
+    route: dashboardRouter,
   },
 ];
 
