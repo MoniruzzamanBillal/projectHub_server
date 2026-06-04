@@ -1,0 +1,21 @@
+"use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.taskRouter = void 0;
+const client_1 = require("@prisma/client");
+const express_1 = require("express");
+const validateRequest_1 = __importDefault(require("../../middleware/validateRequest"));
+const validateUser_1 = __importDefault(require("../../middleware/validateUser"));
+const task_controller_1 = require("./task.controller");
+const task_validation_1 = require("./task.validation");
+const router = (0, express_1.Router)();
+router.post("/", (0, validateUser_1.default)(client_1.Role.ADMIN, client_1.Role.PROJECT_MANAGER), (0, validateRequest_1.default)(task_validation_1.taskValidations.createTaskValidationSchema), task_controller_1.taskController.createTask);
+router.get("/", (0, validateUser_1.default)(client_1.Role.ADMIN, client_1.Role.PROJECT_MANAGER, client_1.Role.TEAM_MEMBER), task_controller_1.taskController.getAllTasks);
+router.get("/project/:projectId", (0, validateUser_1.default)(client_1.Role.ADMIN, client_1.Role.PROJECT_MANAGER, client_1.Role.TEAM_MEMBER), task_controller_1.taskController.getTasksByProject);
+router.get("/my", (0, validateUser_1.default)(client_1.Role.ADMIN, client_1.Role.PROJECT_MANAGER, client_1.Role.TEAM_MEMBER), task_controller_1.taskController.getMyTasks);
+router.get("/:id", (0, validateUser_1.default)(client_1.Role.ADMIN, client_1.Role.PROJECT_MANAGER, client_1.Role.TEAM_MEMBER), task_controller_1.taskController.getSingleTask);
+router.patch("/:id", (0, validateUser_1.default)(client_1.Role.ADMIN, client_1.Role.PROJECT_MANAGER, client_1.Role.TEAM_MEMBER), (0, validateRequest_1.default)(task_validation_1.taskValidations.updateTaskValidationSchema), task_controller_1.taskController.updateTask);
+router.delete("/:id", (0, validateUser_1.default)(client_1.Role.ADMIN, client_1.Role.PROJECT_MANAGER), task_controller_1.taskController.deleteTask);
+exports.taskRouter = router;

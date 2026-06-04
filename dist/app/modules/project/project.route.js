@@ -1,0 +1,21 @@
+"use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.projectRouter = void 0;
+const express_1 = require("express");
+const client_1 = require("@prisma/client");
+const validateRequest_1 = __importDefault(require("../../middleware/validateRequest"));
+const validateUser_1 = __importDefault(require("../../middleware/validateUser"));
+const project_controller_1 = require("./project.controller");
+const project_validation_1 = require("./project.validation");
+const router = (0, express_1.Router)();
+router.post("/", (0, validateUser_1.default)(client_1.Role.ADMIN, client_1.Role.PROJECT_MANAGER), (0, validateRequest_1.default)(project_validation_1.projectValidations.createProjectValidationSchema), project_controller_1.projectController.createProject);
+router.get("/", (0, validateUser_1.default)(client_1.Role.ADMIN, client_1.Role.PROJECT_MANAGER, client_1.Role.TEAM_MEMBER), project_controller_1.projectController.getAllProjects);
+router.get("/:id", (0, validateUser_1.default)(client_1.Role.ADMIN, client_1.Role.PROJECT_MANAGER, client_1.Role.TEAM_MEMBER), project_controller_1.projectController.getSingleProject);
+router.patch("/:id", (0, validateUser_1.default)(client_1.Role.ADMIN, client_1.Role.PROJECT_MANAGER), (0, validateRequest_1.default)(project_validation_1.projectValidations.updateProjectValidationSchema), project_controller_1.projectController.updateProject);
+router.delete("/:id", (0, validateUser_1.default)(client_1.Role.ADMIN), project_controller_1.projectController.deleteProject);
+router.post("/:id/members", (0, validateUser_1.default)(client_1.Role.ADMIN, client_1.Role.PROJECT_MANAGER), project_controller_1.projectController.addMember);
+router.delete("/:id/members/:memberId", (0, validateUser_1.default)(client_1.Role.ADMIN, client_1.Role.PROJECT_MANAGER), project_controller_1.projectController.removeMember);
+exports.projectRouter = router;
